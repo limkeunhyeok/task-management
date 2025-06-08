@@ -16,10 +16,12 @@ import {
   SAMPLE_ANALYTICS,
 } from './configurations/mongoose.config';
 import { ServerConfig, serverConfig } from './configurations/server.config';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { SlackModule } from './modules/slack/slack.module';
 import { TaskManagementModule } from './modules/task-managements/task-management.module';
 import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.module';
 
+console.log(`.env.${process.env.NODE_ENV ?? 'dev'}`);
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,7 +30,7 @@ import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.mo
       isGlobal: true,
     }),
     MongooseModule.forRootAsync({
-      useFactory: (config: ConfigService) =>
+      useFactory: (config: ConfigService<ServerConfig>) =>
         new MongodbConfigService(
           config,
           SAMPLE_ANALYTICS,
@@ -46,6 +48,7 @@ import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.mo
         webhookUrl: configService.get<string>('slackWebhookUrl'),
       }),
     }),
+    AnalyticsModule.register(),
   ],
   controllers: [AppController],
   providers: [],

@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+export const TRANSACTION_MODEL = 'TRANSACTION_MODEL';
 export type TransactionDocument = Transaction & Document;
 
 @Schema()

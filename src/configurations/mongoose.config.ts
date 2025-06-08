@@ -6,6 +6,7 @@ import {
 } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { LogLevel } from 'src/common/logger/logger'; // LogLevel 경로를 실제 프로젝트에 맞게 확인하세요.
+import { ServerConfig } from './server.config';
 
 export const SAMPLE_AIRBNB = 'sample_airbnb';
 export const SAMPLE_ANALYTICS = 'sample_analytics';
@@ -21,7 +22,7 @@ export class MongodbConfigService implements MongooseOptionsFactory {
   private readonly dbName: string;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<ServerConfig>,
     dbName: string,
   ) {
     this.logger = new Logger(this.constructor.name);
@@ -33,9 +34,10 @@ export class MongodbConfigService implements MongooseOptionsFactory {
 
     return {
       uri: mongoDBUri,
-      user: this.configService.get<string>(`MONGO_USER`),
-      pass: this.configService.get<string>(`MONGO_PASS`),
+      user: this.configService.get<string>('mongoUser'),
+      pass: this.configService.get<string>('mongoPass'),
       autoIndex: false,
+      authSource: 'admin',
       connectionFactory: (connection: Connection) => {
         this.logger.log({
           level: LogLevel.INFO,
@@ -66,7 +68,7 @@ export class MongodbConfigService implements MongooseOptionsFactory {
   }
 
   private getMongoDBUri(dbName: string): string {
-    const mongoUri = this.configService.get<string>(`MONGO_URI`);
+    const mongoUri = this.configService.get<string>('mongoUri');
     return `mongodb://${mongoUri}/${dbName}`;
   }
 }

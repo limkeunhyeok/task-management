@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import mongoose from 'mongoose';
 import { AppModule } from './app.module';
 import { ApiDocsModule } from './common/api-docs/api-docs.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -20,6 +21,7 @@ async function bootstrap() {
 
   if (nodeEnv !== 'prod') {
     ApiDocsModule.register(app);
+    mongoose.set('debug', true);
   }
 
   await app.listen(port, () => {

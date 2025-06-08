@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+export const CUSTOMER_MODEL = 'CUSTOMER_MODEL';
 export type CustomerDocument = Customer & Document;
 
 @Schema()
@@ -39,8 +40,8 @@ export class Customer {
   @Prop([Number])
   accounts?: number[];
 
-  @Prop({ type: CustomerTierAndDetailsSchema })
-  tier_and_details?: CustomerTierAndDetails;
+  @Prop({ type: CustomerTierAndDetailsSchema, alias: 'tier_and_details' })
+  tierAndDetails?: CustomerTierAndDetails;
 }
 
 export const CustomerSchema = SchemaFactory.createForClass(Customer);

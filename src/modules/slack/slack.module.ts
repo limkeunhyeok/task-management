@@ -10,7 +10,7 @@ import { SlackService } from './slack.service';
 
 @Module({})
 export class SlackModule {
-  static register(options: SlackModuleOptions): DynamicModule {
+  static forRoot(options: SlackModuleOptions): DynamicModule {
     return {
       module: SlackModule,
       imports: [HttpModule],
@@ -22,15 +22,17 @@ export class SlackModule {
         SlackService,
       ],
       exports: [SlackService],
+      global: true,
     };
   }
 
-  static registerAsync(options: SlackModuleAsyncOptions): DynamicModule {
+  static forRootAsync(options: SlackModuleAsyncOptions): DynamicModule {
     return {
       module: SlackModule,
       imports: [HttpModule, ...(options.imports || [])],
       providers: [this.createAsyncOptionsProvider(options), SlackService],
       exports: [SlackService],
+      global: true,
     };
   }
 

@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
-import { TeamsService } from '../teams/teams.service';
 import { ValidateDataTask } from './tasks/validate-data.task';
 
 @Injectable()
@@ -9,7 +8,6 @@ export class TaskSchedulerService implements OnModuleInit {
   private logger: Logger;
 
   constructor(
-    private readonly teamsService: TeamsService,
     private readonly validateDataTask: ValidateDataTask,
     private readonly schedulerRegistry: SchedulerRegistry,
   ) {

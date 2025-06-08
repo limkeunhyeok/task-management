@@ -22,7 +22,6 @@ async function bootstrap() {
     ApiDocsModule.register(app);
   }
 
-  // console.log();
   await app.listen(port, () => {
     logger.log({
       context: 'NestApplication',

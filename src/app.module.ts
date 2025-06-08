@@ -33,7 +33,7 @@ import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.mo
     NestScheduleModule.forRoot(),
     TaskSchedulerModule.register(),
     TaskManagementModule,
-    SlackModule.registerAsync({
+    SlackModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<ServerConfig>) => ({
         webhookUrl: configService.get<string>('slackWebhookUrl'),

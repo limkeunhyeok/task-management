@@ -15,7 +15,7 @@ export class TaskManagementService {
         next = 'error: next fire date is in the past!';
       }
       console.log(`job: ${key} -> next: ${next}`);
-      console.log(value);
+      // console.log(value);
     });
 
     const cronJobs = this.schedulerRegistry.getCronJobs();

@@ -1,16 +1,28 @@
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { SlackService } from '../slack/slack.service';
 import { TaskManagementService } from './task-management.service';
 
 @Controller('/tasks')
 export class TaskManagementController {
-  constructor(private readonly taskManagementService: TaskManagementService) {}
+  constructor(
+    private readonly taskManagementService: TaskManagementService,
+    private readonly slackService: SlackService,
+  ) {}
 
   /**
    * 모든 스케줄된 태스크의 목록을 조회합니다.
    * GET /tasks
    */
   @Get('/')
-  getAllTasks() {
+  async getAllTasks() {
+    await this.slackService.send({
+      type: 'schedulerResult',
+      options: {
+        headerTitle: 'ForRoot',
+        taskDescription: 'global module test2',
+        target: 'global',
+      },
+    });
     return this.taskManagementService.listAllScheduledTasks();
   }
 

@@ -11,7 +11,10 @@ import { AppController } from './app.controller';
 import { HealthModule } from './common/health/health.module';
 import { FaviconMiddleware } from './common/middlewares/favicon.middleware';
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
-import { MongodbConfigService } from './configurations/mongoose.config';
+import {
+  MongodbConfigService,
+  SAMPLE_ANALYTICS,
+} from './configurations/mongoose.config';
 import { ServerConfig, serverConfig } from './configurations/server.config';
 import { SlackModule } from './modules/slack/slack.module';
 import { TaskManagementModule } from './modules/task-managements/task-management.module';
@@ -26,8 +29,12 @@ import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.mo
     }),
     MongooseModule.forRootAsync({
       useFactory: (config: ConfigService) =>
-        new MongodbConfigService(config).createMongooseOptions(),
+        new MongodbConfigService(
+          config,
+          SAMPLE_ANALYTICS,
+        ).createMongooseOptions(),
       inject: [ConfigService],
+      connectionName: SAMPLE_ANALYTICS,
     }),
     HealthModule,
     NestScheduleModule.forRoot(),

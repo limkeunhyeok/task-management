@@ -5,45 +5,59 @@ import {
   MongooseOptionsFactory,
 } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
-import { LogLevel } from 'src/common/logger/logger';
+import { LogLevel } from 'src/common/logger/logger'; // LogLevel 경로를 실제 프로젝트에 맞게 확인하세요.
+
+export const SAMPLE_AIRBNB = 'sample_airbnb';
+export const SAMPLE_ANALYTICS = 'sample_analytics';
+export const SAMPLE_GEOSPATIAL = 'sample_geospatial';
+export const SAMPLE_MFLIX = 'sample_mflix';
+export const SAMPLE_SUPPLIES = 'sample_supplies';
+export const SAMPLE_TRAINING = 'sample_training';
+export const SAMPLE_WEATHERDATA = 'sample_weatherdata';
 
 @Injectable()
 export class MongodbConfigService implements MongooseOptionsFactory {
   private readonly logger: Logger;
+  private readonly dbName: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    dbName: string,
+  ) {
     this.logger = new Logger(this.constructor.name);
+    this.dbName = dbName;
   }
 
   public createMongooseOptions(): MongooseModuleOptions {
-    const mongoDB = this.getMongoDB();
+    const mongoDBUri = this.getMongoDBUri(this.dbName);
+
     return {
-      uri: mongoDB,
-      user: this.configService.get(`MONGO_USER`),
-      pass: this.configService.get(`MONGO_PASS`),
+      uri: mongoDBUri,
+      user: this.configService.get<string>(`MONGO_USER`),
+      pass: this.configService.get<string>(`MONGO_PASS`),
       autoIndex: false,
       connectionFactory: (connection: Connection) => {
         this.logger.log({
           level: LogLevel.INFO,
-          message: `MongoDB connected: ${mongoDB}`,
+          message: `MongoDB connected: ${mongoDBUri}`,
         });
 
         connection.on('disconnected', () => {
-          this.logger.warn(`MongoDB disconnected: ${mongoDB}`);
+          this.logger.warn(`MongoDB disconnected: ${mongoDBUri}`);
         });
 
         connection.on('reconnected', () => {
-          this.logger.log(`MongoDB reconnected: ${mongoDB}`);
+          this.logger.log(`MongoDB reconnected: ${mongoDBUri}`);
         });
 
         connection.on('error', (error) => {
           this.logger.error(
-            `MongoDB connection error: ${error}, uri: ${mongoDB}`,
+            `MongoDB connection error: ${error.message}, uri: ${mongoDBUri}`,
           );
         });
 
         connection.on('close', () => {
-          this.logger.log('MongoDB connection closed');
+          this.logger.log(`MongoDB connection closed: ${mongoDBUri}`);
         });
 
         return connection;
@@ -51,59 +65,8 @@ export class MongodbConfigService implements MongooseOptionsFactory {
     };
   }
 
-  private getMongoDB() {
-    return (
-      'mongodb://' +
-      this.configService.get(`MONGO_URI`) +
-      '/' +
-      this.configService.get(`MONGO_DATABASE`)
-    );
+  private getMongoDBUri(dbName: string): string {
+    const mongoUri = this.configService.get<string>(`MONGO_URI`);
+    return `mongodb://${mongoUri}/${dbName}`;
   }
 }
-
-// @Injectable()
-// export class MongodbConfigService implements MongooseOptionsFactory {
-//   constructor(
-//     private readonly config: NestConfigService,
-//     private readonly logger: Logger = new Logger(MongodbConfigService.name),
-//     private readonly prefix: string = 'MONGO_MAIN', // 기본값
-//   ) {}
-
-//   createMongooseOptions(): MongooseModuleOptions {
-//     const mongoDB = this.getMongoDB();
-
-//     return {
-//       uri: mongoDB,
-//       user: this.config.get(`${this.prefix}_USERNAME`),
-//       pass: this.config.get(`${this.prefix}_PASSWORD`),
-//       autoIndex: false,
-//       connectionFactory: (connection: Connection) => {
-//         connection.plugin(mongoosePaginate);
-//         this.setupListeners(connection, mongoDB);
-//         return connection;
-//       },
-//     };
-//   }
-
-//   private getMongoDB(): string {
-//     const uri = this.config.get<string>(`${this.prefix}_URI`);
-//     const db = this.config.get<string>(`${this.prefix}_DB`);
-//     return `mongodb://${uri}/${db}`;
-//   }
-
-//   private setupListeners(connection: Connection, uri: string) {
-//     this.logger.log(`MongoDB connected: ${uri}`);
-//     connection.on('disconnected', () => {
-//       this.logger.warn(`MongoDB disconnected: ${uri}`);
-//     });
-//     connection.on('reconnected', () => {
-//       this.logger.log(`MongoDB reconnected: ${uri}`);
-//     });
-//     connection.on('error', (error) => {
-//       this.logger.error(`MongoDB error: ${error}, uri: ${uri}`);
-//     });
-//     connection.on('close', () => {
-//       this.logger.log(`MongoDB closed: ${uri}`);
-//     });
-//   }
-// }

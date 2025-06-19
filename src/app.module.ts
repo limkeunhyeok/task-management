@@ -21,7 +21,6 @@ import { SlackModule } from './modules/slack/slack.module';
 import { TaskManagementModule } from './modules/task-managements/task-management.module';
 import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.module';
 
-console.log(`.env.${process.env.NODE_ENV ?? 'dev'}`);
 @Module({
   imports: [
     ConfigModule.forRoot({

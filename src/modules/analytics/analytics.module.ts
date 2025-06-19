@@ -32,14 +32,17 @@ export class AnalyticsModule {
             {
               name: Account.name,
               schema: AccountSchema,
+              collection: 'accounts',
             },
             {
               name: Customer.name,
               schema: CustomerSchema,
+              collection: 'customers',
             },
             {
               name: Transaction.name,
               schema: TransactionSchema,
+              collection: 'transactions',
             },
           ],
           SAMPLE_ANALYTICS,

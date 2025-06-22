@@ -1,7 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { CronExpression } from '@nestjs/schedule';
+import { ScheduleTask } from 'src/common/decorators/schedule-task.decorator';
 import { CustomerService } from '../analytics/services/customer.service';
 import { Task } from './task.interface';
 
+export const WEEKLY_CUSTOMER_ANALYSIS_TASK = 'WEEKLY_CUSTOMER_ANALYSIS_TASK';
+
+@ScheduleTask({
+  cron: CronExpression.EVERY_DAY_AT_9AM,
+})
 @Injectable()
 export class WeeklyCustomerAnalysisTask implements Task {
   private readonly logger = new Logger(this.constructor.name);

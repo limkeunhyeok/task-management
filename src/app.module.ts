@@ -19,7 +19,6 @@ import { ServerConfig, serverConfig } from './configurations/server.config';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { SlackModule } from './modules/slack/slack.module';
 import { TaskManagementModule } from './modules/task-managements/task-management.module';
-import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.module';
 
 @Module({
   imports: [
@@ -39,7 +38,6 @@ import { TaskSchedulerModule } from './modules/task-schedulers/task-scheduler.mo
     }),
     HealthModule,
     NestScheduleModule.forRoot(),
-    TaskSchedulerModule.register(),
     TaskManagementModule,
     SlackModule.forRootAsync({
       inject: [ConfigService],

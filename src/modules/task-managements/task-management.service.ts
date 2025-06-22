@@ -7,6 +7,8 @@ export class TaskManagementService {
 
   listAllScheduledTasks() {
     const jobs = this.schedulerRegistry.getCronJobs();
+
+    console.log(jobs);
     jobs.forEach((value, key) => {
       let next;
       try {

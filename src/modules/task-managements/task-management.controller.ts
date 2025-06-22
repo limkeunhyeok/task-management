@@ -23,6 +23,7 @@ export class TaskManagementController {
         target: 'global',
       },
     });
+    this.taskManagementService.getRegisteredTasks();
     return this.taskManagementService.listAllScheduledTasks();
   }
 

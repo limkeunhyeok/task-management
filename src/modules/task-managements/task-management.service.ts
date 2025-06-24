@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import {
@@ -11,8 +11,6 @@ import { DefinedTask, TaskStatusReport } from './task-management.interface';
 
 @Injectable()
 export class TaskManagementService {
-  private readonly logger = new Logger(this.constructor.name);
-
   constructor(
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly discoveryService: DiscoveryService,
@@ -48,47 +46,17 @@ export class TaskManagementService {
   }
 
   listAllScheduledTasks(): TaskStatusReport[] {
-    const answer: TaskStatusReport[] = [];
+    const reports: TaskStatusReport[] = [];
 
     const definedTasks = this.getRegisteredTasks();
 
     for (const task of definedTasks) {
       const name = task.name;
-      let isRunning = false;
-      let cronTime: string | null = null;
-      let lastExecution: string | null = null;
-      let nextExecution: string | null = null;
-      let status: TaskRegistrationStatus =
-        TaskRegistrationStatus.NOT_REGISTERED;
-
-      try {
-        const job = this.schedulerRegistry.getCronJob(name);
-
-        isRunning = job.isActive;
-        cronTime = job.cronTime.toString();
-        lastExecution = job.lastExecution
-          ? job.lastExecution.toISOString()
-          : null;
-        nextExecution = job.nextDate() ? job.nextDate().toString() : null;
-        status = TaskRegistrationStatus.REGISTERED;
-      } catch (err: any) {
-        // schedulerRegistry.getCronJob 로직상 없으면 단순 에러
-        this.logger.warn(
-          `Task "${name}" is not registered in SchedulerRegistry.`,
-        );
-        status = TaskRegistrationStatus.NOT_REGISTERED;
-      }
-
-      answer.push({
-        name,
-        isRunning,
-        cronTime,
-        lastExecution,
-        nextExecution,
-      });
+      const report = this.getTaskReport(name);
+      reports.push(report);
     }
 
-    return answer;
+    return reports;
   }
 
   executeTask() {
@@ -103,7 +71,42 @@ export class TaskManagementService {
     return 'hello world';
   }
 
-  getTaskStatus() {
-    return 'hello world';
+  getTaskReport(name: string): TaskStatusReport {
+    const definedTasks = this.getRegisteredTasks();
+
+    const hasTask = definedTasks.find((task) => task.name === name);
+    if (!hasTask) {
+      throw new NotFoundException(
+        `Task "${name}" is not registered in SchedulerRegistry.`,
+      );
+    }
+
+    let isRunning = false;
+    let cronTime: string | null = null;
+    let lastExecution: string | null = null;
+    let nextExecution: string | null = null;
+    let status: TaskRegistrationStatus = TaskRegistrationStatus.NOT_REGISTERED;
+
+    try {
+      const job = this.schedulerRegistry.getCronJob(name);
+
+      isRunning = job.isActive;
+      cronTime = job.cronTime.toString();
+      lastExecution = job.lastExecution
+        ? job.lastExecution.toISOString()
+        : null;
+      nextExecution = job.nextDate() ? job.nextDate().toString() : null;
+      status = TaskRegistrationStatus.REGISTERED;
+    } catch (err: any) {
+      status = TaskRegistrationStatus.NOT_REGISTERED;
+    }
+
+    return {
+      name,
+      isRunning,
+      cronTime,
+      lastExecution,
+      nextExecution,
+    };
   }
 }

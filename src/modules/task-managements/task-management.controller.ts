@@ -1,4 +1,13 @@
-import { Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { CronExpression } from '@nestjs/schedule';
 import { SlackService } from '../slack/slack.service';
 import { TaskManagementService } from './task-management.service';
 
@@ -24,8 +33,11 @@ export class TaskManagementController {
   }
 
   @Post('/:name/execute')
-  executeTask() {
-    return this.taskManagementService.executeTask();
+  executeTask(
+    @Param('name') name: string,
+    @Body('cron') cron?: CronExpression,
+  ) {
+    return this.taskManagementService.executeTask(name, cron);
   }
 
   @Put('/:name/schedule')

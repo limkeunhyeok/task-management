@@ -32,8 +32,8 @@ export class TaskManagementModule implements OnModuleInit {
     const tasks = this.taskManagementService.getRegisteredTasks();
 
     for (const task of tasks) {
-      const { name, cronTime, taskFunction } = task;
-      const job = new CronJob(cronTime, taskFunction);
+      const { name, cronTime, runner } = task;
+      const job = new CronJob(cronTime, runner);
 
       try {
         this.schedulerRegistry.addCronJob(name, job);

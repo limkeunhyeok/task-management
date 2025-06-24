@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
 import {
   SCHEDULE_TASK_METADATA,
   ScheduleTaskOptions,
@@ -37,7 +42,7 @@ export class TaskManagementService {
           tasks.push({
             name: taskOptions.name ?? className,
             cronTime: taskOptions.cron,
-            taskFunction: (instance as Task).execute.bind(instance),
+            runner: (instance as Task).execute.bind(instance),
           });
         }
       }
@@ -59,8 +64,42 @@ export class TaskManagementService {
     return reports;
   }
 
-  executeTask() {
-    return 'hello world';
+  executeTask(name: string, cron?: CronExpression) {
+    const definedTasks = this.getRegisteredTasks();
+
+    const task = definedTasks.find((task) => task.name === name);
+    if (!task) {
+      throw new NotFoundException(
+        `Task "${name}" is not registered in SchedulerRegistry.`,
+      );
+    }
+
+    const isRunning = (() => {
+      try {
+        this.schedulerRegistry.getCronJob(name);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    if (isRunning) {
+      throw new ConflictException(
+        `Task "${name}" is already scheduled and running.`,
+      );
+    }
+
+    const cronTime = cron ?? task.cronTime;
+
+    const job = new CronJob(cronTime, task.runner);
+    this.schedulerRegistry.addCronJob(name, job);
+    job.start();
+
+    return {
+      message: `Task "${name}" registered and scheduled.`,
+      nextRun: job.nextDate().toString(),
+      cronTime,
+    };
   }
 
   scheduleTask() {
@@ -89,6 +128,8 @@ export class TaskManagementService {
 
     try {
       const job = this.schedulerRegistry.getCronJob(name);
+
+      job.fireOnTick;
 
       isRunning = job.isActive;
       cronTime = job.cronTime.toString();

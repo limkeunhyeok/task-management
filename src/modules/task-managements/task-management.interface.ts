@@ -3,7 +3,7 @@ import { CronCallback } from 'cron';
 export interface DefinedTask {
   name: string;
   cronTime: string;
-  taskFunction: CronCallback<null>;
+  runner: CronCallback<null>;
 }
 
 export interface TaskStatusReport {

@@ -1,32 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { CronCallback } from 'cron';
 import {
   SCHEDULE_TASK_METADATA,
   ScheduleTaskOptions,
 } from 'src/common/decorators/schedule-task.decorator';
 import { Task } from '../tasks/task.interface';
+import { TaskRegistrationStatus } from './task-management.constants';
+import { DefinedTask, TaskStatusReport } from './task-management.interface';
 
 @Injectable()
 export class TaskManagementService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
-    private schedulerRegistry: SchedulerRegistry,
+    private readonly schedulerRegistry: SchedulerRegistry,
     private readonly discoveryService: DiscoveryService,
   ) {}
 
-  getRegisteredTasks(): Array<{
-    name: string;
-    cronTime: string;
-    taskFunction: CronCallback<null>;
-  }> {
-    const tasks: Array<{
-      name: string;
-      cronTime: string;
-      taskFunction: CronCallback<null>;
-    }> = [];
+  getRegisteredTasks(): DefinedTask[] {
+    const tasks: DefinedTask[] = [];
 
-    // DiscoveryService를 사용하여 NestJS DI 컨테이너에 등록된 모든 프로바이더를 가져옵니다.
     const providers = this.discoveryService.getProviders();
 
     for (const wrapper of providers) {
@@ -53,30 +47,48 @@ export class TaskManagementService {
     return tasks;
   }
 
-  listAllScheduledTasks() {
-    const jobs = this.schedulerRegistry.getCronJobs();
+  listAllScheduledTasks(): TaskStatusReport[] {
+    const answer: TaskStatusReport[] = [];
 
-    // console.log(jobs);
-    jobs.forEach((value, key) => {
-      let next;
+    const definedTasks = this.getRegisteredTasks();
+
+    for (const task of definedTasks) {
+      const name = task.name;
+      let isRunning = false;
+      let cronTime: string | null = null;
+      let lastExecution: string | null = null;
+      let nextExecution: string | null = null;
+      let status: TaskRegistrationStatus =
+        TaskRegistrationStatus.NOT_REGISTERED;
+
       try {
-        next = value.nextDate().toJSDate();
-      } catch (e) {
-        next = 'error: next fire date is in the past!';
+        const job = this.schedulerRegistry.getCronJob(name);
+
+        isRunning = job.isActive;
+        cronTime = job.cronTime.toString();
+        lastExecution = job.lastExecution
+          ? job.lastExecution.toISOString()
+          : null;
+        nextExecution = job.nextDate() ? job.nextDate().toString() : null;
+        status = TaskRegistrationStatus.REGISTERED;
+      } catch (err: any) {
+        // schedulerRegistry.getCronJob 로직상 없으면 단순 에러
+        this.logger.warn(
+          `Task "${name}" is not registered in SchedulerRegistry.`,
+        );
+        status = TaskRegistrationStatus.NOT_REGISTERED;
       }
-      // console.log(`job: ${key} -> next: ${next}`);
-      // console.log(value);
-    });
 
-    const cronJobs = this.schedulerRegistry.getCronJobs();
-    const intervals = this.schedulerRegistry.getIntervals();
-    const timeouts = this.schedulerRegistry.getTimeouts();
+      answer.push({
+        name,
+        isRunning,
+        cronTime,
+        lastExecution,
+        nextExecution,
+      });
+    }
 
-    return {
-      cronJobs,
-      intervals,
-      timeouts,
-    };
+    return answer;
   }
 
   executeTask() {

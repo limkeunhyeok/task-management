@@ -8,27 +8,14 @@ import {
   Put,
 } from '@nestjs/common';
 import { CronExpression } from '@nestjs/schedule';
-import { SlackService } from '../slack/slack.service';
 import { TaskManagementService } from './task-management.service';
 
 @Controller('/tasks')
 export class TaskManagementController {
-  constructor(
-    private readonly taskManagementService: TaskManagementService,
-    private readonly slackService: SlackService,
-  ) {}
+  constructor(private readonly taskManagementService: TaskManagementService) {}
 
   @Get('/')
   async getAllTasks() {
-    await this.slackService.send({
-      type: 'schedulerResult',
-      options: {
-        headerTitle: 'ForRoot',
-        taskDescription: 'global module test2',
-        target: 'global',
-      },
-    });
-    this.taskManagementService.getRegisteredTasks();
     return this.taskManagementService.listAllScheduledTasks();
   }
 
@@ -46,8 +33,8 @@ export class TaskManagementController {
   }
 
   @Delete('/:name/schedule')
-  unscheduleTask() {
-    return this.taskManagementService.unscheduleTask();
+  unscheduleTask(@Param('name') name: string) {
+    return this.taskManagementService.unscheduleTask(name);
   }
 
   @Get('/:name/report')

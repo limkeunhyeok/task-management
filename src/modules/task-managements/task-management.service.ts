@@ -129,8 +129,30 @@ export class TaskManagementService {
     };
   }
 
-  unscheduleTask() {
-    return 'hello world';
+  unscheduleTask(name: string) {
+    const definedTasks = this.getRegisteredTasks();
+
+    const hasTask = definedTasks.find((task) => task.name === name);
+    if (!hasTask) {
+      throw new NotFoundException(
+        `Task "${name}" is not registered in SchedulerRegistry.`,
+      );
+    }
+
+    let job: CronJob;
+
+    try {
+      job = this.schedulerRegistry.getCronJob(name);
+    } catch {
+      throw new ConflictException(`Task "${name}" is not currently scheduled.`);
+    }
+
+    job.stop();
+    this.schedulerRegistry.deleteCronJob(name);
+
+    return {
+      message: `Task "${name}" has been unscheduled and stopped.`,
+    };
   }
 
   getTaskReport(name: string): TaskStatusReport {

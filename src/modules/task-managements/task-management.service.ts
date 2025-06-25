@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
@@ -16,6 +17,8 @@ import { DefinedTask, TaskStatusReport } from './task-management.interface';
 
 @Injectable()
 export class TaskManagementService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly discoveryService: DiscoveryService,
@@ -64,7 +67,31 @@ export class TaskManagementService {
     return reports;
   }
 
-  executeTask(name: string, cron?: CronExpression) {
+  executeTask(name: string) {
+    const definedTasks = this.getRegisteredTasks();
+
+    const task = definedTasks.find((task) => task.name === name);
+    if (!task) {
+      throw new NotFoundException(
+        `Task "${name}" is not registered in SchedulerRegistry.`,
+      );
+    }
+
+    const startedAt = new Date();
+
+    Promise.resolve()
+      .then(() => task.runner())
+      .catch((error) => {
+        this.logger.error(`Error while executing task "${name}":`, error);
+      });
+
+    return {
+      message: `Task "${name}" execution started.`,
+      startedAt: startedAt.toISOString(),
+    };
+  }
+
+  scheduleTask(name: string, cron?: CronExpression) {
     const definedTasks = this.getRegisteredTasks();
 
     const task = definedTasks.find((task) => task.name === name);
@@ -100,10 +127,6 @@ export class TaskManagementService {
       nextRun: job.nextDate().toString(),
       cronTime,
     };
-  }
-
-  scheduleTask() {
-    return 'hello world';
   }
 
   unscheduleTask() {

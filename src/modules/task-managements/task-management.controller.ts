@@ -33,16 +33,16 @@ export class TaskManagementController {
   }
 
   @Post('/:name/execute')
-  executeTask(
-    @Param('name') name: string,
-    @Body('cron') cron?: CronExpression,
-  ) {
-    return this.taskManagementService.executeTask(name, cron);
+  executeTask(@Param('name') name: string) {
+    return this.taskManagementService.executeTask(name);
   }
 
   @Put('/:name/schedule')
-  scheduleTask() {
-    return this.taskManagementService.scheduleTask();
+  scheduleTask(
+    @Param('name') name: string,
+    @Body('cron') cron?: CronExpression,
+  ) {
+    return this.taskManagementService.scheduleTask(name, cron);
   }
 
   @Delete('/:name/schedule')

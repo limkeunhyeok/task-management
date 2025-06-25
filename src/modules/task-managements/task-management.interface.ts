@@ -1,9 +1,7 @@
-import { CronCallback } from 'cron';
-
 export interface DefinedTask {
   name: string;
   cronTime: string;
-  runner: CronCallback<null>;
+  runner: () => void | Promise<void>;
 }
 
 export interface TaskStatusReport {

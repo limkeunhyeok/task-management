@@ -27,7 +27,25 @@ export interface SchedulerResultTemplateOptions {
   data?: Record<string, any>;
 }
 
+export interface SchedulerErrorTemplateOptions {
+  username?: string;
+  iconUrl?: string;
+  headerTitle: string;
+  taskDescription: string;
+  target: string;
+  errorStack?: string;
+  data?: Record<string, any>;
+}
+
+export const SlackMessageType = {
+  SCHEDULER_RESULT: 'schedulerResult',
+  SCHEDULER_ERROR: 'schedulerError',
+} as const;
+
+export type SlackMessageType =
+  (typeof SlackMessageType)[keyof typeof SlackMessageType];
+
 export type SlackTemplateOptions = {
-  type: 'schedulerResult';
-  options: SchedulerResultTemplateOptions;
+  type: SlackMessageType;
+  options: SchedulerResultTemplateOptions | SchedulerErrorTemplateOptions;
 };

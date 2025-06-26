@@ -174,8 +174,6 @@ export class TaskManagementService {
     try {
       const job = this.schedulerRegistry.getCronJob(name);
 
-      job.fireOnTick;
-
       isRunning = job.isActive;
       cronTime = job.cronTime.toString();
       lastExecution = job.lastExecution

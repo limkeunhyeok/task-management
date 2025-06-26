@@ -3,7 +3,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ServerConfig } from 'src/configurations/server.config';
 import { SLACK_MODULE_OPTIONS } from './slack.constants';
-import { SlackModuleOptions, SlackTemplateOptions } from './slack.interface';
+import {
+  SlackMessageType,
+  SlackModuleOptions,
+  SlackTemplateOptions,
+} from './slack.interface';
+import { createSchedulerErrorMessage } from './templates/scheduler-error.template';
 import { createSchedulerResultMessage } from './templates/scheduler-result.template';
 
 // 공식문서: https://api.slack.com/messaging/sending
@@ -30,8 +35,11 @@ export class SlackService {
     let payload: unknown;
 
     switch (templateOrPayload.type) {
-      case 'schedulerResult':
+      case SlackMessageType.SCHEDULER_RESULT:
         payload = createSchedulerResultMessage(templateOrPayload.options);
+        break;
+      case SlackMessageType.SCHEDULER_ERROR:
+        payload = createSchedulerErrorMessage(templateOrPayload.options);
         break;
       default:
         throw new Error(

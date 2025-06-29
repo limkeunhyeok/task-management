@@ -1,6 +1,16 @@
 version: '3.7'
 
 services:
+  server:
+    container_name: scheduler
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    expose:
+      - 6425
+    ports:
+      - 6425:6425
+    restart: 'unless-stopped'
   mongodb:
     image: mongo:latest
     container_name: mongodb
